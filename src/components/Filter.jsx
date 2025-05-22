@@ -1,5 +1,3 @@
-import React from "react";
-
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
 import FilledInput from "@mui/material/FilledInput";
@@ -24,6 +22,7 @@ function Filter({ filterText, onFilter, onClear, totalCount }) {
                     type="text"
                     value={filterText}
                     onChange={onFilter}
+                    aria-label="Champ de recherche"
                     endAdornment={
                         <InputAdornment position="end">
                             {filterText.length >= 1 && (

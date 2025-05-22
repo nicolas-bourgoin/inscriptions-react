@@ -1,5 +1,3 @@
-import React from "react";
-
 function NoData() {
     return (
         <div className="no-data">
