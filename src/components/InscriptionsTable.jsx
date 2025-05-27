@@ -4,57 +4,34 @@ import Papa from "papaparse";
 import LoadingTableSkeleton from "./LoadingTableSkeleton";
 import Filter from "./Filter";
 import NoData from "./NoData";
-import { customStyles, displayedFields } from "../utils/constants";
+import ExpandedMobileData from "./ExpandedMobileData";
+import {
+    customStyles,
+    displayedFields,
+    mobileColumns,
+    excludedColumnsMobile,
+} from "../utils/constants";
 import useWindowSize from "../hooks/useWindowSize";
+import fetchCsvData from "../queries/fetchCsvData";
 
 const InscriptionsTable = ({ csvFile }) => {
+    // loading table
     const [pending, setPending] = useState(true);
+    // data from csv
     const [data, setData] = useState([]);
+    // columns calculated in desktop version
     const [columns, setColumns] = useState([]);
     const [filter, setFilter] = useState("");
 
     const width = useWindowSize();
 
-    const filteredItems = data.filter(
-        (item) =>
-            item.NOM && item.NOM.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    const mobileColumns = [
-        {
-            name: "Nom",
-            selector: (row) => row.NOM,
-            sortable: true,
-        },
-        {
-            name: "Prénom",
-            selector: (row) => row.PRENOM,
-            sortable: true,
-        },
-    ];
-
-    const ExpandedComponent = ({ data }) => (
-        <div style={{ padding: "10px 20px" }}>
-            <p>
-                <strong>Catégorie :</strong> {data.CATEGORIE_ET_SEXE}
-            </p>
-            <p>
-                <strong>Code postal :</strong> {data["CODE POSTAL"]}
-            </p>
-            <p>
-                <strong>Ville :</strong> {data.VILLE}
-            </p>
-            <p>
-                <strong>Fédération :</strong> {data.FEDERATION}
-            </p>
-            <p>
-                <strong>Club :</strong> {data.CLUB}
-            </p>
-            <p>
-                <strong>État :</strong> {data.ETAT}
-            </p>
-        </div>
-    );
+    const filteredItems = useMemo(() => {
+        return data.filter(
+            (item) =>
+                item.NOM &&
+                item.NOM.toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [data, filter]);
 
     const subHeaderComponentMemo = useMemo(() => {
         const handleClear = () => {
@@ -73,48 +50,43 @@ const InscriptionsTable = ({ csvFile }) => {
     }, [filter, filteredItems]);
 
     const filteredColumns = useMemo(() => {
-        return Object.entries(displayedFields)
-            .filter(([key]) => {
-                if (
-                    width < 768 &&
-                    (key === "FEDERATION" ||
-                        key === "CODE POSTAL" ||
-                        key === "CLUB" ||
-                        key === "ETAT")
+        return (
+            Object.entries(displayedFields)
+                // If we are in mobile mode (width < 768), we exclude certain specific columns
+                .filter(
+                    ([key]) =>
+                        !(width < 768 && excludedColumnsMobile.includes(key))
                 )
-                    return false;
-                return true;
-            })
-            .map(([cle, displayedName], index) => ({
-                id: index + 1,
-                name: displayedName,
-                selector: (row) => row[cle],
-                sortFunction: (a, b) => {
-                    const aVal = a[cle] || "";
-                    const bVal = b[cle] || "";
-                    return aVal.localeCompare(bVal, "fr", {
-                        sensitivity: "base",
-                    });
-                },
-            }));
+                // For each entry, we create a column object for react-data-table-component
+                .map(([key, displayedName], index) => ({
+                    id: index + 1,
+                    name: displayedName,
+                    selector: (row) => row[key] ?? "", // Function to retrieve the corresponding data in a row
+
+                    sortFunction: (a, b) => {
+                        // Custom function to sort values by column (French locale)
+
+                        const aVal = a[key] || "";
+                        const bVal = b[key] || "";
+                        return aVal.localeCompare(bVal, "fr", {
+                            sensitivity: "base",
+                        });
+                    },
+                }))
+        );
     }, [width]);
 
     useEffect(() => {
+        // display skeleton
         setPending(true);
 
-        fetch(`/imports/${csvFile}`)
-            .then((response) => {
-                if (!response.ok)
-                    throw new Error("Erreur lors du chargement des données.");
-                return response.text();
-            })
-            .then((text) => {
-                const parsed = Papa.parse(text, { header: true });
-                const csvData = parsed.data;
-
+        // request
+        fetchCsvData(`/imports/${csvFile}`)
+            .then((csvData) => {
                 if (csvData.length > 0) {
                     setColumns(filteredColumns);
 
+                    // sort by name
                     const sortedData = [...csvData].sort((a, b) => {
                         if (!a.NOM) return 1;
                         if (!b.NOM) return -1;
@@ -125,10 +97,11 @@ const InscriptionsTable = ({ csvFile }) => {
 
                     setData(sortedData);
                 }
+                // Slight wait for the skeleton appear
                 setTimeout(() => setPending(false), 50);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch((error) => {
+                console.error(error);
                 setPending(false);
             });
     }, [csvFile, filteredColumns]);
@@ -158,7 +131,7 @@ const InscriptionsTable = ({ csvFile }) => {
             defaultSortAsc={false}
             customStyles={customStyles}
             expandableRows={width <= 768 ? true : false}
-            expandableRowsComponent={ExpandedComponent}
+            expandableRowsComponent={ExpandedMobileData}
         />
     );
 };

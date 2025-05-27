@@ -1,6 +1,6 @@
 import LoadingRow from "./LoadingRow";
 
-function LoadingTableSkeleton({ rows = 5, columns = 6 }) {
+function LoadingTableSkeleton({ rows, columns }) {
     return (
         <div className="loading-table">
             {Array.from({ length: rows }).map((_, i) => (

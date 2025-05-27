@@ -1,4 +1,4 @@
-function LoadingRow({ columnCount = 6 }) {
+function LoadingRow({ columnCount }) {
     const columns = Array.from({ length: columnCount });
 
     return (
