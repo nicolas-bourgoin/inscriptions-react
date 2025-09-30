@@ -1,12 +1,14 @@
-# React + Vite
+# List of registered users (React table)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a React application.  
+It displays race registrations in a dynamic table from a CSV file.
 
-Currently, two official plugins are available:
+## Demo
+👉 [See it live](https://www.courses-nature-des-coevrons.fr/liste-des-inscrits-50km)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- Display registrations in a responsive table
+- Search/filter by name
+- Loading and empty states
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
